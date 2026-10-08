@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const pages = (start, end) =>
   Array.from({ length: end - start + 1 }, (_, i) =>
@@ -177,10 +177,32 @@ function WorkCard({ project, index, open }) {
 
 export default function Home() {
   const [active, setActive] = useState(null);
+  const [heroEnded, setHeroEnded] = useState(false);
+  const [badgeOpen, setBadgeOpen] = useState(false);
+  const heroVideo = useRef(null);
   const move = (direction) => {
     setActive((current) => (current + direction + projects.length) % projects.length);
     requestAnimationFrame(() => document.querySelector(".detail")?.scrollTo({ top: 0 }));
   };
+
+  const replayHero = () => {
+    const video = heroVideo.current;
+    if (!video) return;
+    setHeroEnded(false);
+    video.currentTime = 0;
+    video.play().catch(() => setHeroEnded(true));
+  };
+
+  useEffect(() => {
+    if (!badgeOpen) return;
+    document.body.classList.add("locked");
+    const closeBadge = (event) => event.key === "Escape" && setBadgeOpen(false);
+    window.addEventListener("keydown", closeBadge);
+    return () => {
+      document.body.classList.remove("locked");
+      window.removeEventListener("keydown", closeBadge);
+    };
+  }, [badgeOpen]);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -386,14 +408,42 @@ export default function Home() {
         <img src="/brand/susu-cutout.png" alt="" />
       </a>
       <main>
-        <section className="hero" id="hero">
-          <img className="hero-single" src="/home-hero.png" alt="Hi, I'm SUSU — visual designer portfolio cover" />
-          <nav className="hero-hit-nav" aria-label="首页导航">
-            <a href="#about" aria-label="About" />
-            <a href="#creative" aria-label="Portfolio" />
-            <a href="#works" aria-label="Projects" />
-            <a href="#contact" aria-label="Contact" />
+        <section className={`hero cinematic-hero ${heroEnded ? "is-ended" : "is-playing"}`} id="hero">
+          <div className="hero-stage">
+            <img className="hero-final-frame" src="/hero/final-frame.png" alt="SUSU 视觉设计师作品集封面" />
+            <video
+              ref={heroVideo}
+              className="hero-intro-video"
+              src="/hero/intro.mp4"
+              poster="/hero/first-frame.jpg"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              onEnded={() => setHeroEnded(true)}
+              onError={() => setHeroEnded(true)}
+              aria-label="SUSU 个人作品集片头动画"
+            />
+            <button
+              className="badge-hotspot"
+              type="button"
+              onClick={() => setBadgeOpen(true)}
+              aria-label="打开工牌并查看孙苏阳的简历"
+              data-cursor="RESUME"
+            >
+              <span>VIEW RESUME <b>↗</b></span>
+            </button>
+          </div>
+          <nav className="cinematic-nav" aria-label="首页导航">
+            <a href="#about">ABOUT</a>
+            <a href="#creative">PORTFOLIO</a>
+            <a href="#works">PROJECTS</a>
+            <a href="#contact">CONTACT</a>
           </nav>
+          <div className="hero-meta" aria-hidden="true">
+            <span>SUSU · VISUAL DESIGNER</span>
+            <button type="button" onClick={replayHero}>REPLAY ↻</button>
+          </div>
         </section>
 
         <section className="creative" id="creative">
@@ -456,6 +506,21 @@ export default function Home() {
       </main>
 
       {active !== null && <Detail project={projects[active]} close={() => setActive(null)} move={move} />}
+      {badgeOpen && (
+        <div className="badge-modal" role="dialog" aria-modal="true" aria-label="孙苏阳的设计师工牌" onClick={() => setBadgeOpen(false)}>
+          <div className="badge-dialog" onClick={(event) => event.stopPropagation()}>
+            <button className="badge-close" type="button" onClick={() => setBadgeOpen(false)} aria-label="关闭工牌">CLOSE ×</button>
+            <div className="badge-front-wrap">
+              <img src="/hero/badge-front.png" alt="孙苏阳视觉设计师工牌正面" />
+            </div>
+            <div className="badge-actions">
+              <div><small>SUYANG · RESUME</small><p>点击查看完整个人简历</p></div>
+              <a href="/resume.pdf" target="_blank" rel="noreferrer">查看简历 PDF ↗</a>
+              <a className="badge-download" href="/resume.pdf" download>下载 PDF ↓</a>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
