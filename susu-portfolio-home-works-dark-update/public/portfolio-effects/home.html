@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090a0d">
+<title>孙苏阳 · 首页</title>
+<meta name="description" content="孙苏阳的视觉设计、IP运营、AIGC与品牌作品。">
+<link rel="preload" as="video" href="assets/intro-smooth.mp4" type="video/mp4"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="site-header"><a class="brand" href="#hero" aria-label="孙苏阳，返回首页"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M4 2h23l-5 7H11l15 10-5 13H0l5-7h11L1 15z" fill="currentColor"/></svg>SUYANG<span>VISUAL DESIGNER</span></a><nav aria-label="主导航"><a href="/works" target="_top" id="works-link">作品</a><a id="directory-open" href="/works" target="_top">项目目录</a><button id="about">关于我 ↗</button></nav></header>
+<main>
+<section id="hero" aria-label="入场动画"><div class="stage"><img id="end" src="assets/end.jpg" alt="赛博都市中的女生递出工牌"><video id="intro" src="assets/intro-smooth.mp4" poster="assets/start.jpg" autoplay="autoplay" muted="muted" playsinline="playsinline" webkit-playsinline preload="auto"></video><img id="motion-fallback" alt="女生入场动画" hidden><button id="badge" aria-label="点击工牌，查看个人简介" disabled></button><span id="hint">点击工牌，认识我 ↗</span></div><div class="hero-bottom"><span>孙苏阳 / 视觉设计 · 品牌运营 · AIGC</span><a href="/works" target="_top" class="explore-link">探索精选作品 <span>↓</span></a><button id="replay">重播 ↺</button></div><button id="play">播放入场动画 →</button></section>
+</main>
+<dialog id="profile"><button class="close" aria-label="收起工牌">收起 ×</button><div class="front"><img src="assets/badge-front-user.png" alt="孙苏阳个人简介：中国地质大学（武汉），数字媒体艺术，2027届，阅文集团视觉运营设计实习生"><a class="pdf-hotspot" href="assets/resume.pdf" target="_blank" rel="noopener" aria-label="简历详情，打开 PDF"></a></div></dialog>
+<script src="shared.js"></script>
+<script src="home.js"></script>
+</body>
+</html>
