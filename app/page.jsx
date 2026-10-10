@@ -202,11 +202,15 @@ function WorksExperience() {
 
     const onFrameLoad = () => {
       frameWindow = frame.contentWindow;
+      const root = frame.contentDocument?.documentElement;
+      const height = root?.scrollHeight;
+      if (Number.isFinite(height) && height > window.innerHeight) shell.style.height = `${Math.ceil(height)}px`;
+      frameWindow?.postMessage({ type: "works-original:request-metrics" }, window.location.origin);
       requestSync();
     };
 
     const onFrameMessage = (event) => {
-      if (event.origin !== window.location.origin || event.source !== frameWindow) return;
+      if (event.origin !== window.location.origin) return;
       const type = event.data?.type;
 
       if (type === "works-original:metrics") {
@@ -249,7 +253,7 @@ function WorksExperience() {
     window.addEventListener("scroll", requestSync, { passive: true });
     window.addEventListener("resize", requestSync, { passive: true });
     window.addEventListener("message", onFrameMessage);
-    requestSync();
+    onFrameLoad();
 
     return () => {
       cancelAnimationFrame(scrollFrame);
