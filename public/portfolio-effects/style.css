@@ -54,9 +54,9 @@ body:not(.in-gallery) #site-header nav{gap:30px;font-size:13px;letter-spacing:0}
 #end{object-fit:cover}
 .stage video.done{visibility:hidden}
 #motion-fallback{z-index:1}
-#badge-visual{position:absolute;z-index:2;inset:auto;left:11.5%;top:44%;width:42%;height:auto;object-fit:contain;opacity:0;pointer-events:none;transition:opacity .18s,filter .25s,transform .25s;transform-origin:50% 55%}
+#badge-visual{position:absolute;z-index:2;inset:auto;left:11.5%;top:43%;width:34%;height:auto;object-fit:contain;opacity:0;pointer-events:none;transition:opacity .18s,filter .25s,transform .25s;transform-origin:50% 55%}
 .ready #badge-visual{opacity:1}
-#badge{position:absolute;z-index:3;left:11.5%;top:44%;width:42%;height:56%;clip-path:polygon(55% 0,100% 20%,81% 100%,0 63%);cursor:pointer}
+#badge{position:absolute;z-index:3;left:11.5%;top:43%;width:34%;height:57%;clip-path:polygon(55% 0,100% 20%,81% 100%,0 63%);cursor:pointer}
 #badge:disabled{cursor:default}
 #badge:not(:disabled):hover{background:#9c7cff12}
 .stage:has(#badge:not(:disabled):hover) #badge-visual{filter:drop-shadow(0 0 13px #9c7cff);transform:scale(1.012)}
