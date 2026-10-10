@@ -43,7 +43,7 @@ body:not(.in-gallery) #site-header nav{gap:30px;font-size:13px;letter-spacing:0}
 .has-webgl #scene{visibility:visible}
 .has-webgl #scene-fallback{display:none}
 #scene-fallback{background:radial-gradient(ellipse at 48% 44%,#2b2149,#05050d 72%);perspective:1000px}
-.fallback-grid{position:absolute;inset:-20%;background:linear-gradient(#050507 1px,transparent 1px),linear-gradient(90deg,#050507 1px,transparent 1px),url("assets/end.jpg") center/cover;background-size:42px 42px,42px 42px,cover;background-blend-mode:normal,normal,luminosity;opacity:.12;transform:perspective(1200px) rotateY(9deg);animation:fallback-flow 18s ease-in-out infinite alternate}
+.fallback-grid{position:absolute;inset:-20%;background:linear-gradient(#050507 1px,transparent 1px),linear-gradient(90deg,#050507 1px,transparent 1px),url("assets/end-hd.png") center/cover;background-size:42px 42px,42px 42px,cover;background-blend-mode:normal,normal,luminosity;opacity:.12;transform:perspective(1200px) rotateY(9deg);animation:fallback-flow 18s ease-in-out infinite alternate}
 .fallback-symbol{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%) rotate(-10deg);font-size:55vh;line-height:1;color:#ffffff08;font-weight:900;font-style:italic;letter-spacing:-6vh}
 .fallback-card{position:absolute;overflow:hidden;box-shadow:0 12px 45px #0006;border:1px solid #ffffff19;transform-style:preserve-3d}
 .fallback-card img{width:100%;height:100%;object-fit:fill;display:block}
@@ -51,11 +51,15 @@ body:not(.in-gallery) #site-header nav{gap:30px;font-size:13px;letter-spacing:0}
 #hero{position:relative;min-height:100svh;background:#05050d;display:flex;flex-direction:column;justify-content:center;--yellow:#c8baff}
 .stage{position:relative;width:min(100%,calc((100svh - 64px)*16/9));aspect-ratio:16/9;margin-inline:auto}
 .stage>img,.stage>video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#end{object-fit:cover}
 .stage video.done{visibility:hidden}
 #motion-fallback{z-index:1}
-#badge{position:absolute;z-index:2;left:12.5%;top:44%;width:32%;height:54%;clip-path:polygon(55% 0,100% 20%,81% 100%,0 63%);cursor:pointer}
+#badge-visual{position:absolute;z-index:2;inset:auto;left:11.5%;top:44%;width:42%;height:auto;object-fit:contain;opacity:0;pointer-events:none;transition:opacity .18s,filter .25s,transform .25s;transform-origin:50% 55%}
+.ready #badge-visual{opacity:1}
+#badge{position:absolute;z-index:3;left:11.5%;top:44%;width:42%;height:56%;clip-path:polygon(55% 0,100% 20%,81% 100%,0 63%);cursor:pointer}
 #badge:disabled{cursor:default}
-#badge:not(:disabled):hover{background:#9c7cff1f;filter:drop-shadow(0 0 12px #9c7cff)}
+#badge:not(:disabled):hover{background:#9c7cff12}
+.stage:has(#badge:not(:disabled):hover) #badge-visual{filter:drop-shadow(0 0 13px #9c7cff);transform:scale(1.012)}
 #hint{position:absolute;z-index:2;left:6%;top:73%;font-size:12px;color:var(--yellow);opacity:0;transition:opacity 1s;pointer-events:none;text-shadow:0 2px 5px #000}
 .ready #hint{opacity:1}
 .hero-bottom{padding:20px 4vw;display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:1px;color:#b7b2bc}
@@ -137,7 +141,7 @@ body:not(.in-gallery) #site-header nav{gap:30px;font-size:13px;letter-spacing:0}
 .vision-bottom{position:absolute;left:8vw;bottom:55px;color:#a99ed0;font-size:12px;letter-spacing:.05em}
 .vision-bottom>span{margin-left:15px}
 #portal{position:absolute;z-index:3;overflow:hidden;isolation:isolate;background:#0e1118;will-change:width,height,left,top;opacity:0}
-.portal-city{position:absolute;inset:0;background:linear-gradient(90deg,#04060ca0,#101320c0),url("assets/end.jpg") center/cover;transform:scale(1.05);filter:saturate(.35);opacity:.7}
+.portal-city{position:absolute;inset:0;background:linear-gradient(90deg,#04060ca0,#101320c0),url("assets/end-hd.png") center/cover;transform:scale(1.05);filter:saturate(.35);opacity:.7}
 .portal-sheen{position:absolute;inset:-30%;z-index:1;pointer-events:none;background:conic-gradient(from 70deg at 40% 50%,transparent 0deg,#91b5bb2b 80deg,transparent 100deg,#9773df21 160deg,transparent 220deg,#cfb34a20 300deg,transparent);mix-blend-mode:screen;animation:portal-light 15s linear infinite}
 @keyframes portal-light{to{transform:rotate(360deg)}}
 #contact-content{position:absolute;inset:0;z-index:2;color:#f3f5f1;opacity:0}
