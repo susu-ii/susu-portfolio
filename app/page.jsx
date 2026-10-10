@@ -233,7 +233,7 @@ function WorksExperience() {
       <iframe
         ref={frameRef}
         className="works-experience-frame"
-        src="/works-original/works.html"
+        src="/works-original/works.html#works"
         title="孙苏阳精选作品动态展示"
         allow="fullscreen"
       />
