@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  const FIRST = 1.45, LAST = 6.45, STACK_START = 7.10, STACK_END = 8.10, EXPAND_START = 8.70, EXPAND_END = 10.00, END = 10.60;
+  const FIRST = 1.45, LAST = 6.45, STACK_START = 99, STACK_END = 100, EXPAND_START = 101, EXPAND_END = 102, END = 7.35;
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
   const mix = (a, b, t) => a + (b - a) * t;
   const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
