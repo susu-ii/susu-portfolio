@@ -184,112 +184,47 @@ function WorksExperience() {
     const frame = frameRef.current;
     if (!shell || !frame) return;
 
-    let frameWindow;
-    let frameDocument;
+    let frameWindow = frame.contentWindow;
     let scrollFrame = 0;
-    let touchY = null;
 
-    const shellTop = () => shell.getBoundingClientRect().top + window.scrollY;
-
-    const measure = () => {
-      if (!frameDocument) return;
-      const height = Math.max(frameDocument.documentElement.scrollHeight, window.innerHeight * 6.8);
-      shell.style.height = `${height}px`;
-    };
-
-    const syncFromPage = () => {
+    const updateInteraction = () => {
       scrollFrame = 0;
-      if (!frameWindow || !frameDocument) return;
-      const max = Math.max(0, frameDocument.documentElement.scrollHeight - frame.clientHeight);
       const bounds = shell.getBoundingClientRect();
-      const fullyPinned = bounds.top <= 1 && bounds.bottom >= window.innerHeight - 1;
-      const next = bounds.top > 1
-        ? 0
-        : bounds.bottom < window.innerHeight - 1
-          ? max
-          : fullyPinned
-            ? Math.max(0, Math.min(max, window.scrollY - shellTop()))
-            : frameWindow.scrollY;
-      if (Math.abs(frameWindow.scrollY - next) < 2) return;
-      frameWindow.scrollTo(0, next);
+      const fullyVisible = bounds.top <= 1 && bounds.bottom >= window.innerHeight - 1;
+      frame.style.pointerEvents = fullyVisible ? "auto" : "none";
     };
 
     const onPageScroll = () => {
-      if (!scrollFrame) scrollFrame = requestAnimationFrame(syncFromPage);
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateInteraction);
+    };
+
+    const onFrameLoad = () => {
+      frameWindow = frame.contentWindow;
+      updateInteraction();
     };
 
     const onFrameMessage = (event) => {
       if (event.origin !== window.location.origin || event.source !== frameWindow) return;
-      if (event.data?.type === "portfolio-effects:wheel") {
-        const delta = Number(event.data.delta);
-        const mode = Number(event.data.deltaMode);
-        if (!Number.isFinite(delta)) return;
-        const unit = mode === 1 ? 18 : mode === 2 ? window.innerHeight : 1;
-        window.scrollBy({ top: delta * unit, left: 0, behavior: "auto" });
-        return;
-      }
-      if (event.data?.type !== "portfolio-effects:navigate") return;
-      const destination = Number(event.data.scrollTop);
-      if (!Number.isFinite(destination) || !frameDocument) return;
-      const max = Math.max(0, frameDocument.documentElement.scrollHeight - frame.clientHeight);
-      window.scrollTo({
-        top: shellTop() + Math.max(0, Math.min(max, destination)),
-        left: 0,
-        behavior: "smooth",
-      });
+      if (event.data?.type !== "works-original:boundary-wheel") return;
+      const delta = Number(event.data.deltaY);
+      const mode = Number(event.data.deltaMode);
+      if (!Number.isFinite(delta)) return;
+      const unit = mode === 1 ? 18 : mode === 2 ? window.innerHeight : 1;
+      window.scrollBy({ top: delta * unit, left: 0, behavior: "auto" });
     };
 
-    const onFrameTouchStart = (event) => {
-      touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
-    };
-
-    const onFrameTouchMove = (event) => {
-      if (touchY === null || event.touches.length !== 1) return;
-      const nextY = event.touches[0].clientY;
-      const delta = touchY - nextY;
-      touchY = nextY;
-      if (Math.abs(delta) < 0.5) return;
-      event.preventDefault();
-      window.scrollBy({ top: delta, left: 0, behavior: "auto" });
-    };
-
-    const onFrameTouchEnd = () => { touchY = null; };
-
-    const disconnectFrame = () => {
-      frameDocument?.removeEventListener("touchstart", onFrameTouchStart);
-      frameDocument?.removeEventListener("touchmove", onFrameTouchMove);
-      frameDocument?.removeEventListener("touchend", onFrameTouchEnd);
-      frameDocument?.removeEventListener("touchcancel", onFrameTouchEnd);
-      frameWindow?.removeEventListener("resize", measure);
-    };
-
-    const connect = () => {
-      disconnectFrame();
-      frameWindow = frame.contentWindow;
-      frameDocument = frame.contentDocument;
-      if (!frameWindow || !frameDocument) return;
-      measure();
-      syncFromPage();
-      frameDocument.addEventListener("touchstart", onFrameTouchStart, { passive: true });
-      frameDocument.addEventListener("touchmove", onFrameTouchMove, { passive: false });
-      frameDocument.addEventListener("touchend", onFrameTouchEnd, { passive: true });
-      frameDocument.addEventListener("touchcancel", onFrameTouchEnd, { passive: true });
-      frameWindow.addEventListener("resize", measure, { passive: true });
-    };
-
-    frame.addEventListener("load", connect);
+    frame.addEventListener("load", onFrameLoad);
     window.addEventListener("scroll", onPageScroll, { passive: true });
-    window.addEventListener("resize", measure, { passive: true });
+    window.addEventListener("resize", onPageScroll, { passive: true });
     window.addEventListener("message", onFrameMessage);
-    if (frame.contentDocument?.readyState === "complete") connect();
+    updateInteraction();
 
     return () => {
       cancelAnimationFrame(scrollFrame);
-      frame.removeEventListener("load", connect);
+      frame.removeEventListener("load", onFrameLoad);
       window.removeEventListener("scroll", onPageScroll);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", onPageScroll);
       window.removeEventListener("message", onFrameMessage);
-      disconnectFrame();
     };
   }, []);
 
@@ -298,7 +233,7 @@ function WorksExperience() {
       <iframe
         ref={frameRef}
         className="works-experience-frame"
-        src="/portfolio-effects/works.html"
+        src="/works-original/works.html"
         title="孙苏阳精选作品动态展示"
         allow="fullscreen"
       />

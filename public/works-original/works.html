@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090a0d">
+<title>孙苏阳 · 精选作品</title>
+<meta name="description" content="孙苏阳的视觉设计、IP运营、AIGC与品牌作品。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="embed-mode">
+<header id="site-header"><a class="brand" href="home.html" aria-label="孙苏阳，返回首页"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M4 2h23l-5 7H11l15 10-5 13H0l5-7h11L1 15z" fill="currentColor"/></svg>SUYANG<span>VISUAL DESIGNER</span></a><nav aria-label="主导航"><a href="#works" id="works-link">作品</a><button id="directory-open">项目目录</button><button id="about">关于我 ↗</button></nav></header>
+<main>
+<div id="experience"><div id="world">
+<canvas id="scene" aria-hidden="true"></canvas><div id="scene-fallback" aria-hidden="true"><div class="fallback-grid"></div><div class="fallback-symbol">S</div><div id="fallback-cards"></div></div>
+<div id="scene-word" aria-hidden="true">Selected <em>works</em><span>精选作品 / 2026</span></div>
+<section id="works" aria-label="精选作品，滚动切换项目" inert><div class="gallery-heading"><span><i></i><b>精选作品</b><em>Selected works</em></span><span>2026 <span class="heading-slash">/</span> 视觉 · 内容 · 体验</span></div><div class="orientation" aria-hidden="true"><div class="orb"><span></span><i></i><b></b></div><span>滚动浏览</span></div><div id="project-hitboxes"></div><div id="project-caption"><p class="project-kicker"><span id="project-number">01</span><span class="caption-dot"></span><span id="project-category"></span></p><h1 id="project-title"></h1><p id="project-subtitle"></p><p id="project-description"></p><div id="project-tags"></div></div><div class="project-action"><button id="project-open">查看项目 <span>↗</span></button><span>滚动切换，点击展开</span></div><div class="gallery-bottom"><div class="gallery-pagination" id="gallery-pagination" aria-label="项目切换"></div><div class="gallery-arrows"><button id="previous-project" aria-label="上一个项目">←</button><span id="gallery-count">01 — 06</span><button id="next-project" aria-label="下一个项目">→</button></div></div><div class="gallery-progress"><span id="gallery-progress-fill"></span></div><p id="scene-status" class="sr-only" aria-live="polite"></p></section>
+<section id="vision-panel" aria-label="设计理念" inert><div class="vision-grid" aria-hidden="true"></div><p class="vision-label"><span>设计随想</span><em>A note on design</em></p><div class="vision-copy"><span>我的设计视角</span><h2><span>让每个想法，</span><br><span>拥有清晰的</span><br><span>视觉表达。</span></h2><p>从内容识别，到 IP 记忆，<br>再到多场景的视觉延展。</p></div><svg class="vision-outline" viewBox="0 0 300 340" aria-hidden="true"><path d="M40 20h230l-50 70H110l150 100-50 130H0l50-70h110L10 150z" fill="none" stroke="currentColor" stroke-width="1"/><path d="M60 40h175l-30 35H80l160 122-42 105H27l29-36h124L31 145z" fill="none" stroke="currentColor" stroke-width=".5"/></svg><span class="vision-bottom">向下，继续相遇 <span>↓</span></span><div id="portal"><div class="portal-city"></div><div class="portal-sheen"></div><div id="contact-content"><div class="contact-card"><button id="contact-badge" aria-label="查看个人简介"><img src="assets/badge-front-user.png" alt="孙苏阳的个人工牌" loading="lazy"></button></div><div class="contact-copy"><span>Let’s create <em>something.</em></span><h2>下一次，<br>一起<span>创造。</span></h2><p>孙苏阳<br>视觉设计 · 品牌运营 · AIGC</p><div class="contact-links"><a href="assets/resume.pdf" target="_blank" rel="noopener">查看我的简历 <span>↗</span></a><button id="contact-about">认识我 <span>↗</span></button></div></div><div class="contact-bottom"><span>SUYANG © 2026</span><button id="back-to-start">回到起点 ↑</button></div></div></div></section>
+<div id="gallery-cursor" aria-hidden="true"><span>↗</span><small>展开</small></div>
+</div></div>
+<footer><span class="footer-note"><b>谢谢，看到这里。</b><em>Thank you for your time.</em></span><button id="footer-restart">再看一次 ↑</button></footer>
+</main>
+<dialog id="profile"><button class="close" aria-label="收起工牌">收起 ×</button><div class="front"><img src="assets/badge-front-user.png" alt="孙苏阳个人简介：中国地质大学（武汉），数字媒体艺术，2027届，阅文集团视觉运营设计实习生"><a class="pdf-hotspot" href="assets/resume.pdf" target="_blank" rel="noopener" aria-label="简历详情，打开 PDF"></a></div></dialog>
+<dialog id="directory"><div class="directory-header"><span><b>项目索引</b><em>Project index</em></span><button id="directory-close" aria-label="关闭项目目录">关闭 ×</button></div><div id="directory-grid"></div></dialog>
+<dialog id="case"><div class="case-toolbar"><button id="case-close">← 返回作品</button><span id="case-title"></span><nav id="case-nav" aria-label="案例章节"></nav><button id="case-top">回到顶部 ↑</button></div><div id="case-content"></div><button id="next"></button><div id="transition-cover" aria-hidden="true"><img alt=""></div></dialog>
+<dialog id="lightbox"><button id="lightbox-zoom" aria-pressed="false">放大细节 +</button><button id="lightbox-close" aria-label="关闭大图">关闭 ×</button><img id="lightbox-image" alt="项目细节大图"></dialog>
+<script src="shared.js"></script>
+<script src="motion-math.js"></script>
+<script src="shaders.js"></script>
+<script src="gallery.js"></script>
+<script src="works.js"></script>
+<script src="embed-bridge.js"></script>
+</body>
+</html>

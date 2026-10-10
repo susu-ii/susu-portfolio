@@ -951,7 +951,7 @@
 body{background:#05050d}
 .home-embed-shell{position:relative;z-index:130;width:100%;height:100svh;overflow:hidden;background:#05050d}
 .home-embed-frame,.works-experience-frame{display:block;width:100%;height:100svh;border:0;background:#05050d}
-.works-experience-shell{position:relative;min-height:680svh;background:#05050d}
+.works-experience-shell{position:relative;height:105svh;min-height:105svh;background:#090a0d}
 .works-experience-frame{position:sticky;top:0;overflow:hidden}
 .creative{background:#060611}
 .statement{background:#111020}
@@ -962,4 +962,4 @@ body{background:#05050d}
 .brand-badge{border-color:#a891ff8a;background:#8d70ff;box-shadow:0 10px 30px #0008,0 0 0 0 #8d70ff00}
 .brand-badge:hover{box-shadow:0 14px 36px #000a,0 0 0 7px #8d70ff1c}
 .scroll-progress{background:linear-gradient(90deg,#7b5cff,#a98cff 52%,#4866ff);box-shadow:0 0 16px #8d70ffaa}
-@media(max-width:760px){.works-experience-shell{min-height:720svh}}
+@media(max-width:760px){.works-experience-shell{height:108svh;min-height:108svh}}
