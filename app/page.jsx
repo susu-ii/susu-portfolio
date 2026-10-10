@@ -560,15 +560,6 @@ export default function Home() {
           <p className="kinetic-line kinetic-line-c"><span>FOR</span><span>FUTURE</span></p>
         </section>
 
-        <footer className="footer" id="contact">
-          <div className="footer-hero"><img src="/brand/susu-cutout.png" alt="孙苏阳女生角色" /><h2>SUSU<br />VISUAL<br />DESIGN<span className="hot-pink">ER</span></h2></div>
-          <div className="footer-grid">
-            <div><small>PROFILE</small><p>孙苏阳<br />中国地质大学（武汉）<br />数字媒体艺术 · 2027</p></div>
-            <div><small>FOCUS</small><p>AIGC 视觉<br />品牌运营设计<br />互联网活动视觉</p></div>
-            <div><small>CONTACT</small><p><a href="mailto:susuyyyy1@gmail.com">susuyyyy1@gmail.com ↗</a><br /><a href="tel:18396207080">183 9620 7080 ↗</a><br /><a href="/resume.pdf" download>下载简历 ↗</a></p></div>
-          </div>
-          <div className="footer-bottom"><span>© 2026 SUN SUYANG</span><a href="#hero">BACK TO TOP ↑</a></div>
-        </footer>
       </main>
 
       {active !== null && <Detail project={projects[active]} close={() => setActive(null)} move={move} />}
