@@ -1,16 +1,27 @@
 (function () {
 'use strict';
 const $ = selector => document.querySelector(selector);
-const video = $('#intro'), badge = $('#badge');
+const video = $('#intro'), badge = $('#badge'), endFrame = $('#end'), badgeVisual = $('#badge-visual');
 if (!video || !badge) return;
 
 // Keep the confirmed video/WebP autoplay path independent from the gallery.
-let playPending = false, finished = false, retryTimer, fallbackTimer, fallbackActive = false;
+let playPending = false, finished = false, retryTimer, fallbackTimer, fallbackActive = false, revealRun = 0;
+const visualReady = Promise.all([
+  endFrame?.decode ? endFrame.decode().catch(() => {}) : Promise.resolve(),
+  badgeVisual?.decode ? badgeVisual.decode().catch(() => {}) : Promise.resolve()
+]);
 video.muted = true; video.defaultMuted = true; video.volume = 0; video.playsInline = true; video.autoplay = true;
-function ready() {
+async function ready() {
+  const run = ++revealRun;
   clearTimeout(fallbackTimer); clearInterval(retryTimer);
-  $('#motion-fallback').hidden = true; video.classList.add('done');
-  badge.disabled = false; $('#hero').classList.add('ready'); $('#play').style.display = 'none';
+  await visualReady;
+  if (run !== revealRun) return;
+  $('#motion-fallback').hidden = true;
+  requestAnimationFrame(() => {
+    if (run !== revealRun) return;
+    video.classList.add('done');
+    badge.disabled = false; $('#hero').classList.add('ready'); $('#play').style.display = 'none';
+  });
 }
 function startFallback() {
   if (finished || fallbackActive || (!video.paused && video.currentTime > 0)) return;
@@ -41,7 +52,7 @@ setTimeout(() => { if (!finished && video.currentTime < .05) startFallback(); },
 $('#replay').onclick = async () => {
   const gallery = window.PortfolioGallery;
   if (gallery && !await gallery.goHome(450)) return;
-  clearTimeout(fallbackTimer); finished = false; badge.disabled = true; $('#hero').classList.remove('ready');
+  revealRun++; clearTimeout(fallbackTimer); finished = false; badge.disabled = true; $('#hero').classList.remove('ready');
   if (fallbackActive) {
     const old = $('#motion-fallback'), animation = old.cloneNode(false); animation.removeAttribute('src'); animation.hidden = true; old.replaceWith(animation);
     fallbackActive = false; startFallback(); return;
