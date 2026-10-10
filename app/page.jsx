@@ -187,43 +187,75 @@ function WorksExperience() {
     let frameWindow = frame.contentWindow;
     let scrollFrame = 0;
 
-    const updateInteraction = () => {
+    const shellStart = () => shell.getBoundingClientRect().top + window.scrollY;
+    const syncFrameScroll = () => {
       scrollFrame = 0;
-      const bounds = shell.getBoundingClientRect();
-      const fullyVisible = bounds.top <= 1 && bounds.bottom >= window.innerHeight - 1;
-      frame.style.pointerEvents = fullyVisible ? "auto" : "none";
+      if (!frameWindow) return;
+      const max = Math.max(0, shell.offsetHeight - window.innerHeight);
+      const y = Math.max(0, Math.min(max, window.scrollY - shellStart()));
+      frameWindow.postMessage({ type: "works-original:set-scroll", y }, window.location.origin);
     };
 
-    const onPageScroll = () => {
-      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateInteraction);
+    const requestSync = () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(syncFrameScroll);
     };
 
     const onFrameLoad = () => {
       frameWindow = frame.contentWindow;
-      updateInteraction();
+      requestSync();
     };
 
     const onFrameMessage = (event) => {
       if (event.origin !== window.location.origin || event.source !== frameWindow) return;
-      if (event.data?.type !== "works-original:boundary-wheel") return;
-      const delta = Number(event.data.deltaY);
-      const mode = Number(event.data.deltaMode);
-      if (!Number.isFinite(delta)) return;
-      const unit = mode === 1 ? 18 : mode === 2 ? window.innerHeight : 1;
-      window.scrollBy({ top: delta * unit, left: 0, behavior: "auto" });
+      const type = event.data?.type;
+
+      if (type === "works-original:metrics") {
+        const height = Number(event.data.scrollHeight);
+        if (Number.isFinite(height) && height > window.innerHeight) {
+          shell.style.height = `${Math.ceil(height)}px`;
+          requestSync();
+        }
+        return;
+      }
+
+      if (type === "works-original:wheel") {
+        const delta = Number(event.data.deltaY);
+        const mode = Number(event.data.deltaMode);
+        if (!Number.isFinite(delta)) return;
+        const unit = mode === 1 ? 18 : mode === 2 ? window.innerHeight : 1;
+        window.scrollBy({ top: delta * unit, left: 0, behavior: "auto" });
+        return;
+      }
+
+      if (type === "works-original:inner-scroll") {
+        const y = Number(event.data.y);
+        if (!Number.isFinite(y)) return;
+        const max = Math.max(0, shell.offsetHeight - window.innerHeight);
+        const destination = shellStart() + Math.max(0, Math.min(max, y));
+        if (Math.abs(window.scrollY - destination) > 1) window.scrollTo({ top: destination, behavior: "auto" });
+        return;
+      }
+
+      if (type === "works-original:navigate") {
+        const y = Number(event.data.y);
+        if (!Number.isFinite(y)) return;
+        const max = Math.max(0, shell.offsetHeight - window.innerHeight);
+        const destination = shellStart() + Math.max(0, Math.min(max, y));
+        window.scrollTo({ top: destination, behavior: "auto" });
+      }
     };
 
     frame.addEventListener("load", onFrameLoad);
-    window.addEventListener("scroll", onPageScroll, { passive: true });
-    window.addEventListener("resize", onPageScroll, { passive: true });
+    window.addEventListener("scroll", requestSync, { passive: true });
+    window.addEventListener("resize", requestSync, { passive: true });
     window.addEventListener("message", onFrameMessage);
-    updateInteraction();
+    requestSync();
 
     return () => {
       cancelAnimationFrame(scrollFrame);
       frame.removeEventListener("load", onFrameLoad);
-      window.removeEventListener("scroll", onPageScroll);
-      window.removeEventListener("resize", onPageScroll);
+      window.removeEventListener("scroll", requestSync);
+      window.removeEventListener("resize", requestSync);
       window.removeEventListener("message", onFrameMessage);
     };
   }, []);
@@ -233,7 +265,7 @@ function WorksExperience() {
       <iframe
         ref={frameRef}
         className="works-experience-frame"
-        src="/works-original/works.html#works"
+        src="/works-original/works.html"
         title="孙苏阳精选作品动态展示"
         allow="fullscreen"
       />
