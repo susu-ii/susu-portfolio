@@ -15,7 +15,11 @@
   }
 
   window.addEventListener('message', event => {
-    if (event.origin !== window.location.origin || event.source !== window.parent) return;
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type === 'works-original:request-metrics') {
+      postMetrics();
+      return;
+    }
     if (event.data?.type !== 'works-original:set-scroll') return;
     const root = document.scrollingElement || document.documentElement;
     const max = Math.max(0, root.scrollHeight - window.innerHeight);
