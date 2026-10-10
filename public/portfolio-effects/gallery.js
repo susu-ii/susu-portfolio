@@ -171,6 +171,7 @@
   function initialize(data, onOpen) {
     data.forEach(prepareArt);
     const world = $('#world'), experience = $('#experience'), works = $('#works'), vision = $('#vision-panel'), portal = $('#portal');
+    const embedded = document.body.classList.contains('embed-mode') || window.parent !== window;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'), coarse = window.matchMedia('(pointer: coarse)');
     let width = world.clientWidth, height = world.clientHeight, step = height * .82, offset = 0, target = 0, display = 0, current = -1;
     let paused = false, hovering = false, hover = 0, tick = 0, lastTime = 0, activeTime = 0, scrollTimer, navigation, visible = true, drag = null, lastRendered = -1;
@@ -230,6 +231,10 @@
     function cancelNavigation() { if (navigation) { navigation.resolve(false); navigation = null; } }
     function goToScroll(destination, duration) {
       cancelNavigation(); clearTimeout(scrollTimer); hovering = false;
+      if (embedded) {
+        window.parent.postMessage({ type: 'portfolio-effects:navigate', scrollTop: destination }, window.location.origin);
+        return Promise.resolve(true);
+      }
       const distance = destination - window.scrollY;
       if (Math.abs(distance) < 2 || reduced.matches) { window.scrollTo(0, destination); target = display = M.scrollState(destination, offset, step).unit; wake(); return Promise.resolve(true); }
       return new Promise(resolve => { navigation = { from: window.scrollY, destination, start: performance.now(), duration, resolve }; wake(); });
@@ -243,6 +248,7 @@
     const goProject = index => goUnit(M.FIRST + M.clamp(index, 0, data.length - 1));
     function scheduleSnap() {
       clearTimeout(scrollTimer);
+      if (embedded) return;
       scrollTimer = setTimeout(() => {
         if (paused || navigation || document.querySelector('dialog[open]') || (drag && drag.moved)) return;
         const progress = M.scrollState(window.scrollY, offset, step);
@@ -307,7 +313,7 @@
     window.addEventListener('resize', measure, { passive: true });
     document.addEventListener('visibilitychange', () => { lastTime = 0; if (!document.hidden) wake(); });
     window.addEventListener('wheel', event => {
-      if (paused || document.querySelector('dialog[open]')) return;
+      if (embedded || paused || document.querySelector('dialog[open]')) return;
       cancelNavigation();
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.3 && M.state(display).gallery > .9) {
         event.preventDefault(); window.scrollTo(0, window.scrollY + event.deltaX); scheduleSnap(); wake();

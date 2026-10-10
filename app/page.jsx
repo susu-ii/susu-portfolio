@@ -186,8 +186,8 @@ function WorksExperience() {
 
     let frameWindow;
     let frameDocument;
-    let syncingFromPage = false;
     let scrollFrame = 0;
+    let touchY = null;
 
     const shellTop = () => shell.getBoundingClientRect().top + window.scrollY;
 
@@ -201,39 +201,87 @@ function WorksExperience() {
       scrollFrame = 0;
       if (!frameWindow || !frameDocument) return;
       const max = Math.max(0, frameDocument.documentElement.scrollHeight - frame.clientHeight);
-      const next = Math.max(0, Math.min(max, window.scrollY - shellTop()));
+      const bounds = shell.getBoundingClientRect();
+      const fullyPinned = bounds.top <= 1 && bounds.bottom >= window.innerHeight - 1;
+      const next = bounds.top > 1
+        ? 0
+        : bounds.bottom < window.innerHeight - 1
+          ? max
+          : fullyPinned
+            ? Math.max(0, Math.min(max, window.scrollY - shellTop()))
+            : frameWindow.scrollY;
       if (Math.abs(frameWindow.scrollY - next) < 2) return;
-      syncingFromPage = true;
       frameWindow.scrollTo(0, next);
-      requestAnimationFrame(() => { syncingFromPage = false; });
     };
 
     const onPageScroll = () => {
       if (!scrollFrame) scrollFrame = requestAnimationFrame(syncFromPage);
     };
 
-    const onFrameScroll = () => {
-      if (syncingFromPage || !frameWindow) return;
-      const top = shellTop();
-      const bottom = top + shell.offsetHeight - window.innerHeight;
-      if (window.scrollY >= top - 2 && window.scrollY <= bottom + 2) {
-        window.scrollTo(0, top + frameWindow.scrollY);
-      }
+    const onFrameNavigation = (event) => {
+      if (event.origin !== window.location.origin || event.source !== frameWindow) return;
+      if (event.data?.type !== "portfolio-effects:navigate") return;
+      const destination = Number(event.data.scrollTop);
+      if (!Number.isFinite(destination) || !frameDocument) return;
+      const max = Math.max(0, frameDocument.documentElement.scrollHeight - frame.clientHeight);
+      window.scrollTo({
+        top: shellTop() + Math.max(0, Math.min(max, destination)),
+        left: 0,
+        behavior: "smooth",
+      });
+    };
+
+    const onFrameWheel = (event) => {
+      if (event.ctrlKey) return;
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? window.innerHeight : 1;
+      window.scrollBy({ top: event.deltaY * unit, left: 0, behavior: "auto" });
+    };
+
+    const onFrameTouchStart = (event) => {
+      touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
+    };
+
+    const onFrameTouchMove = (event) => {
+      if (touchY === null || event.touches.length !== 1) return;
+      const nextY = event.touches[0].clientY;
+      const delta = touchY - nextY;
+      touchY = nextY;
+      if (Math.abs(delta) < 0.5) return;
+      event.preventDefault();
+      window.scrollBy({ top: delta, left: 0, behavior: "auto" });
+    };
+
+    const onFrameTouchEnd = () => { touchY = null; };
+
+    const disconnectFrame = () => {
+      frameDocument?.removeEventListener("wheel", onFrameWheel);
+      frameDocument?.removeEventListener("touchstart", onFrameTouchStart);
+      frameDocument?.removeEventListener("touchmove", onFrameTouchMove);
+      frameDocument?.removeEventListener("touchend", onFrameTouchEnd);
+      frameDocument?.removeEventListener("touchcancel", onFrameTouchEnd);
+      frameWindow?.removeEventListener("resize", measure);
     };
 
     const connect = () => {
+      disconnectFrame();
       frameWindow = frame.contentWindow;
       frameDocument = frame.contentDocument;
       if (!frameWindow || !frameDocument) return;
       measure();
       syncFromPage();
-      frameWindow.addEventListener("scroll", onFrameScroll, { passive: true });
+      frameDocument.addEventListener("wheel", onFrameWheel, { passive: false });
+      frameDocument.addEventListener("touchstart", onFrameTouchStart, { passive: true });
+      frameDocument.addEventListener("touchmove", onFrameTouchMove, { passive: false });
+      frameDocument.addEventListener("touchend", onFrameTouchEnd, { passive: true });
+      frameDocument.addEventListener("touchcancel", onFrameTouchEnd, { passive: true });
       frameWindow.addEventListener("resize", measure, { passive: true });
     };
 
     frame.addEventListener("load", connect);
     window.addEventListener("scroll", onPageScroll, { passive: true });
     window.addEventListener("resize", measure, { passive: true });
+    window.addEventListener("message", onFrameNavigation);
     if (frame.contentDocument?.readyState === "complete") connect();
 
     return () => {
@@ -241,8 +289,8 @@ function WorksExperience() {
       frame.removeEventListener("load", connect);
       window.removeEventListener("scroll", onPageScroll);
       window.removeEventListener("resize", measure);
-      frameWindow?.removeEventListener("scroll", onFrameScroll);
-      frameWindow?.removeEventListener("resize", measure);
+      window.removeEventListener("message", onFrameNavigation);
+      disconnectFrame();
     };
   }, []);
 
