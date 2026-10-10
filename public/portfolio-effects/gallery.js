@@ -313,7 +313,18 @@
     window.addEventListener('resize', measure, { passive: true });
     document.addEventListener('visibilitychange', () => { lastTime = 0; if (!document.hidden) wake(); });
     window.addEventListener('wheel', event => {
-      if (embedded || paused || document.querySelector('dialog[open]')) return;
+      if (paused || document.querySelector('dialog[open]')) return;
+      if (embedded) {
+        if (event.ctrlKey) return;
+        event.preventDefault();
+        const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+        window.parent.postMessage({
+          type: 'portfolio-effects:wheel',
+          delta,
+          deltaMode: event.deltaMode
+        }, window.location.origin);
+        return;
+      }
       cancelNavigation();
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.3 && M.state(display).gallery > .9) {
         event.preventDefault(); window.scrollTo(0, window.scrollY + event.deltaX); scheduleSnap(); wake();

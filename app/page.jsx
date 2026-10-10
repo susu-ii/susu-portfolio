@@ -218,8 +218,16 @@ function WorksExperience() {
       if (!scrollFrame) scrollFrame = requestAnimationFrame(syncFromPage);
     };
 
-    const onFrameNavigation = (event) => {
+    const onFrameMessage = (event) => {
       if (event.origin !== window.location.origin || event.source !== frameWindow) return;
+      if (event.data?.type === "portfolio-effects:wheel") {
+        const delta = Number(event.data.delta);
+        const mode = Number(event.data.deltaMode);
+        if (!Number.isFinite(delta)) return;
+        const unit = mode === 1 ? 18 : mode === 2 ? window.innerHeight : 1;
+        window.scrollBy({ top: delta * unit, left: 0, behavior: "auto" });
+        return;
+      }
       if (event.data?.type !== "portfolio-effects:navigate") return;
       const destination = Number(event.data.scrollTop);
       if (!Number.isFinite(destination) || !frameDocument) return;
@@ -229,13 +237,6 @@ function WorksExperience() {
         left: 0,
         behavior: "smooth",
       });
-    };
-
-    const onFrameWheel = (event) => {
-      if (event.ctrlKey) return;
-      event.preventDefault();
-      const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? window.innerHeight : 1;
-      window.scrollBy({ top: event.deltaY * unit, left: 0, behavior: "auto" });
     };
 
     const onFrameTouchStart = (event) => {
@@ -255,7 +256,6 @@ function WorksExperience() {
     const onFrameTouchEnd = () => { touchY = null; };
 
     const disconnectFrame = () => {
-      frameDocument?.removeEventListener("wheel", onFrameWheel);
       frameDocument?.removeEventListener("touchstart", onFrameTouchStart);
       frameDocument?.removeEventListener("touchmove", onFrameTouchMove);
       frameDocument?.removeEventListener("touchend", onFrameTouchEnd);
@@ -270,7 +270,6 @@ function WorksExperience() {
       if (!frameWindow || !frameDocument) return;
       measure();
       syncFromPage();
-      frameDocument.addEventListener("wheel", onFrameWheel, { passive: false });
       frameDocument.addEventListener("touchstart", onFrameTouchStart, { passive: true });
       frameDocument.addEventListener("touchmove", onFrameTouchMove, { passive: false });
       frameDocument.addEventListener("touchend", onFrameTouchEnd, { passive: true });
@@ -281,7 +280,7 @@ function WorksExperience() {
     frame.addEventListener("load", connect);
     window.addEventListener("scroll", onPageScroll, { passive: true });
     window.addEventListener("resize", measure, { passive: true });
-    window.addEventListener("message", onFrameNavigation);
+    window.addEventListener("message", onFrameMessage);
     if (frame.contentDocument?.readyState === "complete") connect();
 
     return () => {
@@ -289,7 +288,7 @@ function WorksExperience() {
       frame.removeEventListener("load", connect);
       window.removeEventListener("scroll", onPageScroll);
       window.removeEventListener("resize", measure);
-      window.removeEventListener("message", onFrameNavigation);
+      window.removeEventListener("message", onFrameMessage);
       disconnectFrame();
     };
   }, []);
