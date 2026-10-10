@@ -175,12 +175,16 @@
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'), coarse = window.matchMedia('(pointer: coarse)');
     let width = world.clientWidth, height = world.clientHeight, step = height * .82, offset = 0, target = 0, display = 0, current = -1;
     let paused = false, hovering = false, hover = 0, tick = 0, lastTime = 0, activeTime = 0, scrollTimer, navigation, visible = true, drag = null, lastRendered = -1;
+    let embeddedWheelFrame = 0, embeddedWheelDelta = 0;
     const pointer = { x: 0, y: 0 }, pointerTarget = { x: 0, y: 0 }, hitboxes = [], pages = [], fallbackImages = [];
     let renderer;
     const fallback = () => { renderer = null; world.classList.remove('has-webgl'); };
-    try { renderer = new SceneRenderer($('#scene'), data, fallback, wake); world.classList.add('has-webgl'); }
-    catch (error) { console.warn('Using the portfolio fallback renderer:', error.message); fallback(); }
-    $('#scene').addEventListener('webglcontextrestored', () => { try { renderer = new SceneRenderer($('#scene'), data, fallback, wake); renderer.resize(width, height); world.classList.add('has-webgl'); wake(); } catch (error) { fallback(); } });
+    if (embedded) fallback();
+    else {
+      try { renderer = new SceneRenderer($('#scene'), data, fallback, wake); world.classList.add('has-webgl'); }
+      catch (error) { console.warn('Using the portfolio fallback renderer:', error.message); fallback(); }
+      $('#scene').addEventListener('webglcontextrestored', () => { try { renderer = new SceneRenderer($('#scene'), data, fallback, wake); renderer.resize(width, height); world.classList.add('has-webgl'); wake(); } catch (error) { fallback(); } });
+    }
     function title(index) {
       const p = data[index], heading = $('#project-title'); heading.replaceChildren(); heading.setAttribute('aria-label', p.title);
       heading.classList.toggle('latin-title', /^[\x00-\x7F]+$/.test(p.displayTitle));
@@ -306,7 +310,8 @@
       $('#contact-content').style.transform = 'translateY(' + ((1 - s.contact) * 36) + 'px)';
       world.classList.toggle('cursor-active', hovering && s.gallery > .9 && !coarse.matches && !paused);
       const inMotion = Math.abs(display - target) > .001 || Math.abs(hover - (hovering ? 1 : 0)) > .01;
-      if (!document.hidden && (navigation || inMotion || (visible && !paused && !reduced.matches && s.stack < 1))) wake();
+      const ambientMotion = !embedded && visible && !paused && !reduced.matches && s.stack < 1;
+      if (!document.hidden && (navigation || inMotion || ambientMotion)) wake();
     }
     function wake() { if (!tick && !document.hidden) tick = requestAnimationFrame(frame); }
     window.addEventListener('scroll', () => { target = M.scrollState(window.scrollY, offset, step).unit; if (!navigation) scheduleSnap(); wake(); }, { passive: true });
@@ -318,11 +323,14 @@
         if (event.ctrlKey) return;
         event.preventDefault();
         const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-        window.parent.postMessage({
-          type: 'portfolio-effects:wheel',
-          delta,
-          deltaMode: event.deltaMode
-        }, window.location.origin);
+        const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? height : 1;
+        embeddedWheelDelta += delta * unit;
+        if (!embeddedWheelFrame) embeddedWheelFrame = requestAnimationFrame(() => {
+          embeddedWheelFrame = 0;
+          const amount = Math.max(-180, Math.min(180, embeddedWheelDelta));
+          embeddedWheelDelta = 0;
+          window.parent.postMessage({ type: 'portfolio-effects:wheel', delta: amount, deltaMode: 0 }, window.location.origin);
+        });
         return;
       }
       cancelNavigation();
