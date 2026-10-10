@@ -172,6 +172,7 @@
     data.forEach(prepareArt);
     const world = $('#world'), experience = $('#experience'), works = $('#works'), vision = $('#vision-panel'), portal = $('#portal');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'), coarse = window.matchMedia('(pointer: coarse)');
+    const parentControlsScroll = window.parent !== window && document.body.classList.contains('embed-mode');
     let width = world.clientWidth, height = world.clientHeight, step = height * .82, offset = 0, target = 0, display = 0, current = -1;
     let paused = false, hovering = false, hover = 0, tick = 0, lastTime = 0, activeTime = 0, scrollTimer, navigation, visible = true, drag = null, lastRendered = -1;
     const pointer = { x: 0, y: 0 }, pointerTarget = { x: 0, y: 0 }, hitboxes = [], pages = [], fallbackImages = [];
@@ -230,6 +231,11 @@
     function cancelNavigation() { if (navigation) { navigation.resolve(false); navigation = null; } }
     function goToScroll(destination, duration) {
       cancelNavigation(); clearTimeout(scrollTimer); hovering = false;
+      if (parentControlsScroll) {
+        target = display = M.scrollState(destination, offset, step).unit; wake();
+        window.parent.postMessage({ type: 'works-original:navigate', y: destination, duration }, window.location.origin);
+        return Promise.resolve(true);
+      }
       const distance = destination - window.scrollY;
       if (Math.abs(distance) < 2 || reduced.matches) { window.scrollTo(0, destination); target = display = M.scrollState(destination, offset, step).unit; wake(); return Promise.resolve(true); }
       return new Promise(resolve => { navigation = { from: window.scrollY, destination, start: performance.now(), duration, resolve }; wake(); });
@@ -303,7 +309,7 @@
       if (!document.hidden && (navigation || inMotion || (visible && !paused && !reduced.matches && s.stack < 1))) wake();
     }
     function wake() { if (!tick && !document.hidden) tick = requestAnimationFrame(frame); }
-    window.addEventListener('scroll', () => { target = M.scrollState(window.scrollY, offset, step).unit; if (!navigation) scheduleSnap(); wake(); }, { passive: true });
+    window.addEventListener('scroll', () => { target = M.scrollState(window.scrollY, offset, step).unit; if (!navigation && !parentControlsScroll) scheduleSnap(); wake(); }, { passive: true });
     window.addEventListener('resize', measure, { passive: true });
     document.addEventListener('visibilitychange', () => { lastTime = 0; if (!document.hidden) wake(); });
     window.addEventListener('wheel', event => {
@@ -363,7 +369,13 @@
     const api = {
       data, goProject, goUnit, goHome, goIntro, get index() { return current; },
       setPaused(value) { paused = value; if (value) { cancelNavigation(); clearTimeout(scrollTimer); hovering = false; } wake(); },
-      jumpToProject(index) { cancelNavigation(); const unit = M.FIRST + M.clamp(index, 0, data.length - 1); window.scrollTo(0, offset + unit * step); target = display = unit; wake(); },
+      jumpToProject(index) {
+        cancelNavigation();
+        const unit = M.FIRST + M.clamp(index, 0, data.length - 1), destination = offset + unit * step;
+        target = display = unit; wake();
+        if (parentControlsScroll) window.parent.postMessage({ type: 'works-original:navigate', y: destination, duration: 0 }, window.location.origin);
+        else window.scrollTo(0, destination);
+      },
       getBounds(index) { const pose = M.pose(index, M.state(display).position, width, height, data[index].aspect, pointer, 1); return pose.bounds; },
       get viewport() { return { width, height }; }, reduced
     };

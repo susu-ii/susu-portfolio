@@ -2,19 +2,52 @@
   'use strict';
   if (window.parent === window) return;
 
-  window.addEventListener('wheel', event => {
-    if (event.ctrlKey || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
+  let syncingFromParent = false;
+  let releaseFrame = 0;
+
+  function postMetrics() {
+    const root = document.scrollingElement || document.documentElement;
+    window.parent.postMessage({
+      type: 'works-original:metrics',
+      scrollHeight: root.scrollHeight,
+      viewportHeight: window.innerHeight
+    }, window.location.origin);
+  }
+
+  window.addEventListener('message', event => {
+    if (event.origin !== window.location.origin || event.source !== window.parent) return;
+    if (event.data?.type !== 'works-original:set-scroll') return;
     const root = document.scrollingElement || document.documentElement;
     const max = Math.max(0, root.scrollHeight - window.innerHeight);
-    const leavingAtTop = event.deltaY < 0 && window.scrollY <= 1;
-    const leavingAtBottom = event.deltaY > 0 && window.scrollY >= max - 1;
-    if (!leavingAtTop && !leavingAtBottom) return;
+    const y = Math.max(0, Math.min(max, Number(event.data.y) || 0));
+    syncingFromParent = true;
+    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+    cancelAnimationFrame(releaseFrame);
+    releaseFrame = requestAnimationFrame(() => {
+      releaseFrame = requestAnimationFrame(() => { syncingFromParent = false; });
+    });
+  });
 
+  window.addEventListener('wheel', event => {
+    if (event.ctrlKey || document.querySelector('dialog[open]')) return;
+    const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+    if (!delta) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     window.parent.postMessage({
-      type: 'works-original:boundary-wheel',
-      deltaY: event.deltaY,
+      type: 'works-original:wheel',
+      deltaY: delta,
       deltaMode: event.deltaMode
     }, window.location.origin);
-  }, { passive: false });
+  }, { passive: false, capture: true });
+
+  window.addEventListener('scroll', () => {
+    if (syncingFromParent) return;
+    window.parent.postMessage({ type: 'works-original:inner-scroll', y: window.scrollY }, window.location.origin);
+  }, { passive: true });
+
+  window.addEventListener('load', postMetrics, { once: true });
+  window.addEventListener('resize', postMetrics, { passive: true });
+  new ResizeObserver(postMetrics).observe(document.documentElement);
+  postMetrics();
 })();
